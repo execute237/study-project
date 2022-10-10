@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', (e) => {
 
-    //tabs---------------------------------
+    //tabs
     const tabsParent = document.querySelector('.tabheader__items'),
           tabs = document.querySelectorAll('.tabheader__item'),
           tabContent = document.querySelectorAll ('.tabcontent');
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
     showContent();
 
 
-    //timer---------------------------------
+    //timer
     const deadLine = '2022-10-06';
     function getTimeRemain (endTime) {
         let days,hours,minutes,seconds;
@@ -96,16 +96,15 @@ document.addEventListener('DOMContentLoaded', (e) => {
 
     setClock ('.timer', deadLine);
 
-    //modal---------------------------------
-    const modalOpen = document.querySelectorAll ('[data-modal]'),
-          modalWindow = document.querySelector ('.modal'),
-          modalClose = document.querySelector ('.modal__close');
+    //modal
+    const modalOpen = document.querySelectorAll('[data-modal]'),
+          modalWindow = document.querySelector('.modal');
     
 
     const openModal = () => {
         modalWindow.style.display = 'block';
         document.body.style.overflow = 'hidden';
-/*         clearTimeout (modalTimer); */
+        clearTimeout (modalTimer);
         window.removeEventListener('scroll', showModalByScroll);
     };
 
@@ -119,10 +118,8 @@ document.addEventListener('DOMContentLoaded', (e) => {
         document.body.style.overflow = ''; 
     };  
 
-    modalClose.addEventListener ('click', closeModal);
-
     modalWindow.addEventListener ('click', (e) => {
-        if (e.target == modalWindow) {
+        if (e.target == modalWindow || e.target.classList.contains('modal__close')) {
             closeModal();
         }
     });
@@ -133,7 +130,7 @@ document.addEventListener('DOMContentLoaded', (e) => {
         }
     });
     
-/*     const modalTimer = setTimeout (openModal, 5000); */
+    const modalTimer = setTimeout (openModal, 50000);
 
     function showModalByScroll () {
         if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight - 1) {
@@ -221,12 +218,12 @@ document.addEventListener('DOMContentLoaded', (e) => {
     secondCard.render();
     thirdCard.render();
 
-    //Forms with XMLHttpRequest
+    //Forms with fetch
 
     const forms = document.querySelectorAll ('form');
 
     const status = {
-        loading: 'Загрузка...',
+        loading: 'icons/spinner.svg',
         success: 'Спасибо! Мы скоро с вами свяжемся!',
         failure: 'Что-то пошло не так...'
     };
@@ -240,36 +237,59 @@ document.addEventListener('DOMContentLoaded', (e) => {
         form.addEventListener ('submit', (e) => {
             e.preventDefault();
 
-            const statusNote = document.createElement ('div');
-            statusNote.textContent = status.loading;
-            form.append (statusNote);
-
-            const request = new XMLHttpRequest ();
-            request.open('POST', 'server.php');
-            request.setRequestHeader ('Content-type', 'application/json; charset=utf-8');
+            const statusNote = document.createElement ('img');
+            statusNote.src = status.loading;
+            statusNote.style.cssText =`
+            display: block;
+            margin: 0 auto;
+            `;
+            form.insertAdjacentElement('afterend', statusNote);
 
             const formData = new FormData (form);
             const obj = {};
             formData.forEach (function(value, key) {
                 obj[key] = value;
             });
-            const json = JSON.stringify(obj);
 
-            request.send(json);
-            request.addEventListener ('load', () => {
-                if (request.status === 200) {
-                    console.log(request.response);
-                    statusNote.textContent = status.success;
-                    form.reset();
-                    setTimeout (() => {
-                        statusNote.remove();
-                    }, 2000);
-                }else {
-                    statusNote.textContent = status.failure;
+            fetch ('server.php', {
+                method: 'POST',
+                body: JSON.stringify(obj),
+                headers: {
+                    'Content-type': 'application/json'
                 }
-            });
-
+            }).then (data => data.text())
+            .then(data => {
+                console.log(data);
+                showStatusModal(status.success);
+                form.reset();
+                statusNote.remove();
+            })
+            .catch(() => showStatusModal(status.failure))
+            .finally(() => form.reset());
         });
+    }
+
+    function showStatusModal (message) {
+        const modal = document.querySelector ('.modal__dialog');
+        modal.classList.add ('hide');
+        openModal();
+
+        const statusMessage = document.createElement('div');
+        statusMessage.classList.add('modal__dialog');
+        statusMessage.innerHTML = `
+        <div class="modal__content">
+                <div class="modal__close">&times;</div>
+                <div class="modal__title">${message}</div>
+        </div>
+        `;
+        
+        document.querySelector('.modal').append(statusMessage);
+        setTimeout(() => {
+            statusMessage.remove();
+            modal.classList.add ('show');
+            modal.classList.remove ('hide');
+            closeModal();
+        }, 4000);
     }
     
 });
