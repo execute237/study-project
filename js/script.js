@@ -270,4 +270,53 @@ document.addEventListener('DOMContentLoaded', (e) => {
             closeModal();
         }, 4000);
     }
+
+    //slider
+
+    const sliderNext = document.querySelector('.offer__slider-next'),
+          sliderPrev = document.querySelector('.offer__slider-prev'),
+          sliderCurrent = document.querySelector('#current'),
+          sliderImg = document.querySelectorAll('.offer__slide');
+
+    function slider () {
+        let curr = 1;
+        sliderCurrent.textContent = '01';
+
+        sliderImg.forEach (item => item.classList.add('hide') );
+        sliderImg[curr-1].classList.remove('hide');
+
+        const showCurrent = (num) => {
+            if (num < 10){
+                sliderCurrent.textContent= `0${num}`;
+            }else {
+                sliderCurrent.textContent= `${num}`;
+            }
+        };
+
+        sliderNext.addEventListener('click', (e) => {
+            sliderImg[curr-1].classList.add('hide');
+            if (curr != 4) {
+                ++curr;
+            }else {
+                curr = 1;
+            }
+
+            sliderImg[curr-1].classList.remove('hide');
+            showCurrent(curr);
+
+        });
+
+        sliderPrev.addEventListener('click', (e) => {
+            sliderImg[curr-1].classList.add('hide');
+            if (curr != 1) {
+                --curr;
+            }else {
+                curr = 4;
+            }
+            sliderImg[curr-1].classList.remove('hide');
+            showCurrent(curr);
+        });
+    }
+    slider();
+
 });
